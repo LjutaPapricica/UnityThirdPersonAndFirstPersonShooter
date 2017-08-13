@@ -10,13 +10,15 @@ namespace Pedestrian
         private Pedestrian Ped;
         [SerializeField] [Range(-1, 1)] private float Forward;
         [SerializeField] [Range(-1, 1)] private float Sideway;
-        public enum BehaviouralState { Default, Aiming, Attacking, Reloading }
+        public enum BehaviouralState { Default, Aiming, Attacking, Reloading, Relaxed }
         [SerializeField] private BehaviouralState behaviour;
         public enum LocomotionalState { Crouch, Standing}
         [SerializeField] private LocomotionalState Locomotion;
         [SerializeField] [Range(-90, 90)] private float Turn;
         [SerializeField] private bool ragdoll = false;
         [SerializeField] private Vector3 dir;
+        [SerializeField] private float peakDistance;
+        private float peakAxis;
 
         private void Start()
         {
@@ -41,6 +43,9 @@ namespace Pedestrian
                 case BehaviouralState.Reloading:
                     Ped.GetWeapon().GetFireArmSystem().SetFirePointDirection(Ped.GetWeapon().transform.forward);
                     break;
+                case BehaviouralState.Relaxed:
+                    Ped.GetWeapon().GetFireArmSystem().SetFirePointDirection(Ped.GetWeapon().transform.forward);
+                    break;
                 default:
                     break;
             }
@@ -51,7 +56,7 @@ namespace Pedestrian
             Ped.WeaponManager((ushort)behaviour);
             Ped.RagdollSystem(ragdoll);
             Ped.FirstPersonMode();
-            Ped.SpineRotation();
+            BodyMovements(peakAxis);
         }
 
         private void FixedUpdate()
@@ -59,6 +64,72 @@ namespace Pedestrian
             Ped.Move(Forward, Sideway, Turn, (ushort)Locomotion);
             Ped.SetIKSystem();
             Ped.GetAnimatorController().SetLookPosition(Ped.GetHeadLookPosition());
+        }
+
+        public void SetPeakAxis(float val)
+        {
+            peakAxis = val;
+        }
+
+        private void BodyMovements(float axis)
+        {
+            Ped.BodyRotation(peakDistance);
+            if (GetBehavioralState() == (ushort)BehaviouralState.Aiming || GetBehavioralState() == (ushort)BehaviouralState.Attacking)
+            {
+                if (axis < 0)
+                {
+                    SetPeaking(Mathf.Lerp(GetPeakingDistance(), -1, Time.deltaTime * 5f));
+                }
+                else if (axis > 0)
+                {
+                    SetPeaking(Mathf.Lerp(GetPeakingDistance(), 1, Time.deltaTime * 5f));
+                }
+                else
+                {
+                    SetPeaking(Mathf.Lerp(GetPeakingDistance(), 0, Time.deltaTime * 5f));
+                }
+            }
+            else
+            {
+                SetPeaking(Mathf.Lerp(GetPeakingDistance(), 0, Time.deltaTime * 5f));
+            }
+
+
+            if (IsRagdolled())
+            {
+                GetPedestrian().SetHeadRotate(false);
+                GetPedestrian().SetSpineRotate(false);
+            }
+            else
+            {
+                if (GetPedestrian().IsAnimationInPlayableState("RagdollBelly", "Base Layer") || GetPedestrian().IsAnimationInPlayableState("RagdollBack", "Base Layer"))
+                {
+                    GetPedestrian().SetHeadRotate(false);
+                }
+                else
+                {
+                    GetPedestrian().SetHeadRotate(true);
+                }
+
+                if (GetBehavioralState() == (ushort)BehaviouralState.Relaxed || GetPedestrian().IsAnimationInPlayableState("RagdollBelly", "Base Layer") || GetPedestrian().IsAnimationInPlayableState("RagdollBack", "Base Layer"))
+                {
+                    GetPedestrian().SetSpineRotate(false);
+                }
+                else
+                {
+                    GetPedestrian().SetSpineRotate(true);
+                }
+            }
+        }
+
+        private float GetPeakingDistance()
+        {
+            return peakDistance;
+        }
+
+        private void SetPeaking(float val)
+        {
+            peakDistance = val;
         }
 
         public bool IsRagdolled()

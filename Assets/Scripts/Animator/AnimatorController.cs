@@ -578,13 +578,55 @@ namespace UnityEngine
             return animator;
         }
 
-        void Fire()
+        void Reload(int type)
         {
             Pedestrian.Pedestrian ped = GetComponentInParent<Pedestrian.Pedestrian>();
-            if (ped != null)
+            if (type == 0)
             {
-                ped.Fire();
+                if (ped != null)
+                {
+                    if (ped.IsFPS() == true)
+                    {
+                        ped.Reload();
+                    }
+                }
             }
+            else if (type == 1)
+            {
+                if (ped != null)
+                {
+                    if (ped.IsFPS() == false)
+                    {
+                        ped.Reload();
+                    }
+                }
+            }
+        }
+
+        void Fire(int type)
+        {
+            Pedestrian.Pedestrian ped = GetComponentInParent<Pedestrian.Pedestrian>();
+            if (type == 0)
+            {
+                if (ped != null)
+                {
+                    if (ped.IsFPS() == true)
+                    {
+                        ped.Fire();
+                    }
+                }
+            }
+            else if (type == 1)
+            {
+                if (ped != null)
+                {
+                    if (ped.IsFPS() == false)
+                    {
+                        ped.Fire();
+                    }
+                }
+            }
+            
         }
 
         private void OnAnimatorIK(int layerIndex)

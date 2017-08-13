@@ -3,7 +3,7 @@ guid: fb9a591bbe11a3e45be162d443076bc0
 timeCreated: 1499703475
 licenseType: Free
 ModelImporter:
-  serializedVersion: 19
+  serializedVersion: 21
   fileIDToRecycleName:
     100000: //RootNode
     100002: Head
@@ -153,7 +153,13 @@ ModelImporter:
     optimizeGameObjects: 0
     motionNodeName: 
     rigImportErrors: 
-    rigImportWarnings: 
+    rigImportWarnings: "Copied Avatar Rig Configuration mis-match. Bone length in
+      copied configuration does not match position in animation file:\n\t'LeftUpLeg'
+      : position error = 9505.795898 mm\n\t'LeftLeg' : position error = 39020.074219
+      mm\n\t'LeftFoot' : position error = 36622.136719 mm\n\t'LeftToeBase' : position
+      error = 13772.044922 mm\n\t'RightUpLeg' : position error = 9505.792969 mm\n\t'RightLeg'
+      : position error = 39020.074219 mm\n\t'RightFoot' : position error = 36622.140625
+      mm\n\t'RightToeBase' : position error = 13772.042969 mm\n"
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -164,12 +170,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
       name: AimingA
       takeName: mixamo.com
       firstFrame: 0
-      lastFrame: 40
+      lastFrame: 63
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -331,7 +338,7 @@ ModelImporter:
       name: AimingAFiring
       takeName: mixamo.com
       firstFrame: 0
-      lastFrame: 40
+      lastFrame: 63
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -357,7 +364,7 @@ ModelImporter:
         objectReferenceParameter: {fileID: 11500000, guid: c4e88e591f1e33a478b40f5fdc375e5d,
           type: 3}
         floatParameter: 0
-        intParameter: 0
+        intParameter: 1
         messageOptions: 0
       transformMask:
       - path: 
@@ -503,7 +510,10 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -519,6 +529,7 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 1
   humanDescription:

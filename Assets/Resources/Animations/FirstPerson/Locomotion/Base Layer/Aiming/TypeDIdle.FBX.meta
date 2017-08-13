@@ -3,7 +3,7 @@ guid: b031cbaf322ccb74cbadbb6b8d4e7e93
 timeCreated: 1501142234
 licenseType: Free
 ModelImporter:
-  serializedVersion: 19
+  serializedVersion: 21
   fileIDToRecycleName:
     100000: Head
     100002: HeadTop_End
@@ -160,20 +160,7 @@ ModelImporter:
       : position error = 39020.074219 mm\n\t'RightFoot' : position error = 36622.148438
       mm\n\t'RightToeBase' : position error = 13772.026367 mm\n"
     animationImportErrors: 
-    animationImportWarnings: "\nClip 'Take 001' has import animation warnings that
-      might lower retargeting quality:\nNote: Activate translation DOF on avatar to
-      improve retargeting quality.\n\t'LeftHandMiddle1' has translation animation
-      that will be discarded.\n\t'LeftHandMiddle2' has translation animation that
-      will be discarded.\n\t'LeftHandMiddle3' has translation animation that will
-      be discarded.\n\t'LeftHandIndex2' has translation animation that will be discarded.\n\t'LeftHandRing2'
-      has translation animation that will be discarded.\n\t'LeftHandPinky2' has translation
-      animation that will be discarded.\n\t'LeftHandPinky3' has translation animation
-      that will be discarded.\n\t'RightForeArm' has translation animation that will
-      be discarded.\n\t'RightHandPinky1' has translation animation that will be discarded.\n\t'LeftFoot'
-      has translation animation that will be discarded.\n\t'RightLeg' has translation
-      animation that will be discarded.\n\t'RightFoot' has translation animation that
-      will be discarded.\n\t'RightToeBase' has translation animation that will be
-      discarded.\n"
+    animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     animationCompression: 3
@@ -182,12 +169,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
       name: TypeDIdle
       takeName: Take 001
       firstFrame: 0
-      lastFrame: 5
+      lastFrame: 63
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -351,7 +339,10 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -367,6 +358,7 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 1
   humanDescription:

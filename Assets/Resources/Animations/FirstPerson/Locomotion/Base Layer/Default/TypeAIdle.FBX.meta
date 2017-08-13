@@ -3,7 +3,7 @@ guid: 153799b57dce64d408a0990ef2a96d29
 timeCreated: 1500740672
 licenseType: Free
 ModelImporter:
-  serializedVersion: 19
+  serializedVersion: 21
   fileIDToRecycleName:
     100000: Bip001 Head
     100002: Bip001 HeadNub
@@ -152,9 +152,25 @@ ModelImporter:
     optimizeGameObjects: 0
     motionNodeName: 
     rigImportErrors: 
-    rigImportWarnings: 
+    rigImportWarnings: "Copied Avatar Rig Configuration mis-match. Bone length in
+      copied configuration does not match position in animation file:\n\t'Bip001 L
+      Thigh' : position error = 4250.964355 mm\n\t'Bip001 L Calf' : position error
+      = 15488.783203 mm\n\t'Bip001 L Foot' : position error = 13944.233398 mm\n\t'Bip001
+      L Toe0' : position error = 6235.359863 mm\n\t'Bip001 R Thigh' : position error
+      = 4250.962891 mm\n\t'Bip001 R Calf' : position error = 15488.783203 mm\n\t'Bip001
+      R Foot' : position error = 13944.233398 mm\n\t'Bip001 R Toe0' : position error
+      = 6235.358398 mm\n"
     animationImportErrors: 
-    animationImportWarnings: 
+    animationImportWarnings: "\nClip 'Take 001' has import animation warnings that
+      might lower retargeting quality:\n\t'Bip001 L Forearm' has translation animation
+      that will be discarded.\n\t'Bip001 L Hand' has translation animation that will
+      be discarded.\n\t'Bip001 L Finger02' has translation animation that will be
+      discarded.\n\t'Bip001 L Finger3' has translation animation that will be discarded.\n\t'Bip001
+      L Finger32' has translation animation that will be discarded.\n\t'Bip001 R Forearm'
+      has translation animation that will be discarded.\n\t'Bip001 R Hand' has translation
+      animation that will be discarded.\n\t'Bip001 R Finger0' has translation animation
+      that will be discarded.\n\t'Bip001 R Finger4' has translation animation that
+      will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     animationCompression: 3
@@ -163,12 +179,13 @@ ModelImporter:
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
       name: TypeAIdle
       takeName: Take 001
       firstFrame: 0
-      lastFrame: 60
+      lastFrame: 63
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -417,7 +434,10 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    importVisibility: 0
     importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -433,6 +453,7 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
+    normalCalculationMode: 0
   importAnimation: 1
   copyAvatar: 1
   humanDescription:

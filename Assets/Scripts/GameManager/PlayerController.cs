@@ -16,7 +16,7 @@ namespace GameManager
 
         [SerializeField] private Vector3 DefaultCameraDistance = new Vector3(0, 0, -5.75f);
         [SerializeField] private Vector3 AimDistance = new Vector3(.5f, 0, 2);
-        public enum CameraFollowType { DefaultDistance, AimDistance, AimRightShoulderDistance, FPSCamera }
+        public enum CameraFollowType { DefaultDistance, AimDistance, AimShoulderDistance, FPSCamera }
         [SerializeField] private CameraFollowType cameraFollowType;
 
         [SerializeField] private float MouseXAxisSensitivity;
@@ -33,6 +33,9 @@ namespace GameManager
         private float forwardVelocity;
         private float sidewayVelocity;
         [SerializeField] private Vector3 FPSOffset;
+        [SerializeField] private bool IsRelaxed;
+        [SerializeField] private bool AutoReload;
+        [SerializeField] private bool IsRightShoulder;
 
         private void Start()
         {
@@ -43,21 +46,11 @@ namespace GameManager
         private void Update()
         {
             PlayerInputBehaviour();
+            FPSHeadLook();
         }
 
         private void FixedUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.V))
-            {
-                if (PedControl.GetPedestrian().IsFPS() == false)
-                {
-                    PedControl.GetPedestrian().SetFPS(true);
-                }
-                else
-                {
-                    PedControl.GetPedestrian().SetFPS(false);
-                }
-            }
         }
 
         private void PlayerInputBehaviour()
@@ -65,25 +58,24 @@ namespace GameManager
             DirectionalMethod();
             LocomotionalMethod();
             PedestrianBehaviourMethod();
+
+            if (Input.GetKey(KeyCode.Q))
+            {
+                PedControl.SetPeakAxis(-1);
+            }
+            else if (Input.GetKey(KeyCode.E))
+            {
+                PedControl.SetPeakAxis(1);
+            }
+            else
+            {
+                PedControl.SetPeakAxis(0);
+            }
         }
 
         private void LocomotionalMethod()
         {
-            if (PedControl.GetPedestrian().IsFPS() == true)
-            {
-                PedControl.SetDirection(PedControl.GetPedestrian().GetHeadLookPosition() - PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetFirePosition().normalized);
-            }
-            else
-            {
-                if (PedControl.GetBehavioralState() != (ushort)PedestrianController.BehaviouralState.Aiming || PedControl.GetBehavioralState() != (ushort)PedestrianController.BehaviouralState.Attacking)
-                {
-                    PedControl.SetDirection(PedControl.GetPedestrian().GetHeadLookPosition() - PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetFirePosition().normalized);
-                }
-                else
-                {
-                    PedControl.SetDirection(PedControl.GetPedestrian().GetWeapon().transform.forward);
-                }
-            }
+            PedControl.SetDirection((PedControl.GetPedestrian().GetHeadLookPosition() - PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetFirePoint().position).normalized);
 
             if (PedControl.GetLocomotionalState() == (ushort)PedestrianController.LocomotionalState.Crouch)
             {
@@ -107,68 +99,34 @@ namespace GameManager
             {
                 if (Input.GetKey(KeyCode.Mouse0))
                 {
-                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Attacking);
+                    ProceduralReloadBehaviour(PedestrianController.BehaviouralState.Attacking);
                 }
                 else
                 {
-                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Aiming);
+                    ProceduralReloadBehaviour(PedestrianController.BehaviouralState.Aiming);
                 }
 
-                if (PedControl.GetPedestrian().IsFPS())
-                {
-                    if (cameraFollowType != CameraFollowType.AimRightShoulderDistance && cameraFollowType != CameraFollowType.FPSCamera)
-                    {
-                        cameraFollowType = CameraFollowType.FPSCamera;
-                        PedControl.GetPedestrian().SetFPS(true);
-                    }
-
-                    if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
-                    {
-                        cameraFollowType = CameraFollowType.FPSCamera;
-                        PedControl.GetPedestrian().SetFPS(true);
-                    }
-                    else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
-                    {
-                        cameraFollowType = CameraFollowType.AimRightShoulderDistance;
-                        PedControl.GetPedestrian().SetFPS(false);
-                    }
-                    else if (Input.GetKeyDown(KeyCode.V))
-                    {
-                        if (PedControl.GetPedestrian().IsFPS() == true)
-                        {
-                            PedControl.GetPedestrian().SetFPS(false);
-                            cameraFollowType = CameraFollowType.AimRightShoulderDistance;
-                        }
-                        else
-                        {
-                            PedControl.GetPedestrian().SetFPS(true);
-                            cameraFollowType = CameraFollowType.FPSCamera;
-                        }
-                    }
-                }
-                else
-                {
-                    if (cameraFollowType != CameraFollowType.AimRightShoulderDistance && cameraFollowType != CameraFollowType.FPSCamera)
-                    {
-                        cameraFollowType = CameraFollowType.AimRightShoulderDistance;
-                    }
-
-                    if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
-                    {
-                        cameraFollowType = CameraFollowType.FPSCamera;
-                        PedControl.GetPedestrian().SetFPS(true);
-                    }
-                    else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
-                    {
-                        cameraFollowType = CameraFollowType.AimRightShoulderDistance;
-                        PedControl.GetPedestrian().SetFPS(false);
-                    }
-                }
+                AimingCameraSetup();
 
             }
             else if (Input.GetKey(KeyCode.Mouse0))
             {
-                PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Attacking);
+                if (PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetAmmo().GetClipSize() > 0)
+                {
+                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Attacking);
+                }
+                else
+                {
+                    if (PedControl.GetPedestrian().IsFPS())
+                    {
+                        ProceduralReloadBehaviour(PedestrianController.BehaviouralState.Default);
+                    }
+                    else
+                    {
+                        ProceduralReloadBehaviour(PedestrianController.BehaviouralState.Aiming);
+                    }
+                }
+
                 if (PedControl.GetPedestrian().IsFPS())
                 {
                     cameraFollowType = CameraFollowType.FPSCamera;
@@ -180,13 +138,14 @@ namespace GameManager
             }
             else
             {
-                if (PedControl.GetPedestrian().GetAnimator().GetCurrentAnimatorStateInfo(PedControl.GetPedestrian().GetAnimator().GetLayerIndex("Upper Layer")).IsName("Firing"))
+                if (IsRelaxed)
                 {
-                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Aiming);
+                    ProceduralReloadBehaviour(PedestrianController.BehaviouralState.Relaxed);
+                    
                 }
                 else
                 {
-                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Default);
+                    ProceduralReloadBehaviour(PedestrianController.BehaviouralState.Default);
                 }
 
                 if (PedControl.GetPedestrian().IsFPS())
@@ -197,6 +156,123 @@ namespace GameManager
                 {
                     cameraFollowType = CameraFollowType.DefaultDistance;
                 }
+
+                DefaultCameraSetup();
+            }
+        }
+
+        private void DefaultCameraSetup()
+        {
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                if (PedControl.GetBehavioralState() != (uint)PedestrianController.BehaviouralState.Aiming && PedControl.GetBehavioralState() != (uint)PedestrianController.BehaviouralState.Attacking)
+                {
+                    if (PedControl.GetPedestrian().IsFPS() == false)
+                    {
+                        PedControl.GetPedestrian().SetFPS(true);
+                    }
+                    else
+                    {
+                        PedControl.GetPedestrian().SetFPS(false);
+                    }
+                }
+            }
+        }
+
+        private void AimingCameraSetup()
+        {
+            if (Input.GetKeyDown(KeyCode.V))
+            {
+                if (!(PedControl.GetBehavioralState() != (uint)PedestrianController.BehaviouralState.Aiming && PedControl.GetBehavioralState() != (uint)PedestrianController.BehaviouralState.Attacking))
+                {
+                    if (PedControl.GetPedestrian().IsFPS() == false)
+                    {
+                        if (IsRightShoulder == false)
+                        {
+                            IsRightShoulder = true;
+                        }
+                        else
+                        {
+                            IsRightShoulder = false;
+                        }
+                    }
+                    
+                }
+            }
+
+            if (PedControl.GetPedestrian().IsFPS())
+            {
+                if (cameraFollowType != CameraFollowType.AimShoulderDistance && cameraFollowType != CameraFollowType.FPSCamera)
+                {
+                    cameraFollowType = CameraFollowType.FPSCamera;
+                    PedControl.GetPedestrian().SetFPS(true);
+                }
+
+                if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+                {
+                    cameraFollowType = CameraFollowType.FPSCamera;
+                    PedControl.GetPedestrian().SetFPS(true);
+                }
+                else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+                {
+                    cameraFollowType = CameraFollowType.AimShoulderDistance;
+                    PedControl.GetPedestrian().SetFPS(false);
+                }
+            }
+            else
+            {
+                if (cameraFollowType != CameraFollowType.AimShoulderDistance && cameraFollowType != CameraFollowType.FPSCamera)
+                {
+                    cameraFollowType = CameraFollowType.AimShoulderDistance;
+                }
+
+                if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+                {
+                    cameraFollowType = CameraFollowType.FPSCamera;
+                    PedControl.GetPedestrian().SetFPS(true);
+                }
+                else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+                {
+                    cameraFollowType = CameraFollowType.AimShoulderDistance;
+                    PedControl.GetPedestrian().SetFPS(false);
+                }
+            }
+        }
+
+        private void ProceduralReloadBehaviour(PedestrianController.BehaviouralState state)
+        {
+            if (PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetAmmo().GetClipSize() <= 0 && PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetAmmo().GetBullet() > 0)
+            {
+                if (AutoReload)
+                {
+                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Reloading);
+                }
+                else
+                {
+                    if (Input.GetKey(KeyCode.R))
+                    {
+                        PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Reloading);
+                    }
+                    else
+                    {
+                        PedControl.SetBehaviouralState((ushort)state);
+                    }
+                }
+            }
+            else if (PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetAmmo().GetClipSize() < PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetAmmo().GetMaxClipSize() && PedControl.GetPedestrian().GetWeapon().GetFireArmSystem().GetAmmo().GetBullet() > 0)
+            {
+                if (Input.GetKey(KeyCode.R))
+                {
+                    PedControl.SetBehaviouralState((ushort)PedestrianController.BehaviouralState.Reloading);
+                }
+                else
+                {
+                    PedControl.SetBehaviouralState((ushort)state);
+                }
+            }
+            else
+            {
+                PedControl.SetBehaviouralState((ushort)state);
             }
         }
 
@@ -216,37 +292,16 @@ namespace GameManager
             float Sideway = Mathf.Clamp(Mathf.SmoothDamp(PedControl.GetSideway(), InputY, ref sidewayVelocity, movementSmoothTime), -(PedControl.GetBehavioralState() != (ushort)PedestrianController.BehaviouralState.Default ? .5f : 1f), (PedControl.GetBehavioralState() == (ushort)PedestrianController.BehaviouralState.Default ? 1f : .5f));
             PedControl.SetForward(Forward);
             PedControl.SetSideway(Sideway);
-            
-            if (Vector2.Angle(PedForward, camForward) > 6)
-            {
-                if (PedControl.GetPedestrian().IsFPS() == false)
-                {
-                    if (PedControl.GetBehavioralState() != (ushort)PedestrianController.BehaviouralState.Default)
-                    {
-                        PedControl.SetTurn(0);
-                    }
-                    else
-                    {
-                        float negCheck = (Vector2.Angle(PedRight, camForward) > 90 ? -1 : 1);
-                        PedControl.SetTurn(Vector2.Angle(PedForward, camForward) * negCheck);
-                    }
-                }
-                else
-                {
-                    PedControl.SetTurn(0);
-                    if (PedControl.IsRagdolled())
-                    {
 
-                    }
-                    else
-                    {
-                        PedControl.transform.eulerAngles = Vector3.up * Quaternion.LookRotation(PedControl.GetPedestrian().GetHeadLookPosition() - PedControl.transform.position).eulerAngles.y;
-                    }
-                }
+            if (Vector2.Angle(PedForward, camForward) > 60)
+            {
+                float negCheck = (Vector2.Angle(PedRight, camForward) > 90 ? -1 : 1);
+                PedControl.SetTurn(Vector2.Angle(PedForward, camForward) * negCheck);
             }
-            else
+            else if(Vector2.Angle(PedForward, camForward) < 10)
             {
                 PedControl.SetTurn(0);
+                PedControl.transform.rotation = Quaternion.Slerp(PedControl.transform.rotation, Quaternion.LookRotation(new Vector3(((PedControl.GetPedestrian().GetHeadLookPosition() - PedControl.transform.position).normalized).x, 0, (PedControl.GetPedestrian().GetHeadLookPosition() - PedControl.transform.position).normalized.z)), Time.deltaTime * 4);
             }
 
             if (moveDir.magnitude != 0)
@@ -270,8 +325,8 @@ namespace GameManager
                 case CameraFollowType.AimDistance:
                     AimDistanceCamera();
                     break;
-                case CameraFollowType.AimRightShoulderDistance:
-                    AimRightShoulderDistance();
+                case CameraFollowType.AimShoulderDistance:
+                    AimShoulderDistance();
                     break;
                 case CameraFollowType.FPSCamera:
                     FPSCameraSystem();
@@ -281,34 +336,35 @@ namespace GameManager
             }
         }
 
-        private void AimRightShoulderDistance()
+        private void AimShoulderDistance()
         {
-            pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetAnimator().GetBoneTransform(HumanBodyBones.Head).position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
-            cam.transform.parent = pivotCamera;
-            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, AimDistance, ref CameraLocalPositionSmoothVelocity, .1f);
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 70, Time.deltaTime * 20);
+            pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetHeadBone().position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
+            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(IsRightShoulder ? AimDistance.x : AimDistance.x * -1, AimDistance.y, AimDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
             Yaw += Input.GetAxis("Mouse X") * MouseXAxisSensitivity;
             Vector2 YawLimit = new Vector2(-Mathf.Infinity, Mathf.Infinity);
             Yaw = Mathf.Clamp(Yaw, YawLimit.x, YawLimit.y);
             Pitch -= Input.GetAxis("Mouse Y") * MouseYAxisSensitivity;
             Vector2 PitchLimit = new Vector2(-45, 45);
             Pitch = Mathf.Clamp(Pitch, PitchLimit.x, PitchLimit.y);
-            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw), ref RotationSmoothVelocity, RotationSmoothTime);
+            float Roll = PedControl.GetPedestrian().GetHeadBone().eulerAngles.z;
+            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw, Roll), ref RotationSmoothVelocity, RotationSmoothTime);
             pivotCamera.eulerAngles = CurrentRotation;
-            FPSHeadLook();
         }
 
         private void FPSCameraSystem()
         {
-            if (PedControl.IsRagdolled() ==  true)
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 90, Time.deltaTime * 20);
+            if (PedControl.GetPedestrian().GetHeadRotate() ==  false)
             {
                 cam.transform.localPosition = FPSOffset;
                 cam.transform.localEulerAngles = Vector3.zero;
-                pivotCamera.transform.position = PedControl.GetPedestrian().GetAnimator(true).GetBoneTransform(HumanBodyBones.Head).position;
+                pivotCamera.transform.position = PedControl.GetPedestrian().GetHeadBone(true).position;
                 pivotCamera.eulerAngles = Quaternion.LookRotation(PedControl.GetPedestrian().GetAnimator(true).GetBoneTransform(HumanBodyBones.Head).forward).eulerAngles;
             }
             else
             {
-                pivotCamera.transform.position = PedControl.GetPedestrian().GetAnimator(true).GetBoneTransform(HumanBodyBones.Head).position;
+                pivotCamera.transform.position = PedControl.GetPedestrian().GetHeadBone(true).position;
                 cam.transform.parent = pivotCamera;
                 cam.transform.localPosition = FPSOffset;
                 cam.transform.localEulerAngles = Vector3.zero;
@@ -318,32 +374,32 @@ namespace GameManager
                 Pitch -= Input.GetAxis("Mouse Y") * MouseYAxisSensitivity;
                 Vector2 PitchLimit = new Vector2(-80, 80);
                 Pitch = Mathf.Clamp(Pitch, PitchLimit.x, PitchLimit.y);
-                CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw), ref RotationSmoothVelocity, RotationSmoothTime);
-                pivotCamera.eulerAngles = new Vector3(CurrentRotation.x, CurrentRotation.y, 0);
+                float Roll = PedControl.GetPedestrian().GetHeadBone().eulerAngles.z;
+                CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw, Roll), ref RotationSmoothVelocity, RotationSmoothTime);
+                pivotCamera.eulerAngles = CurrentRotation; // new Vector3(CurrentRotation.x, CurrentRotation.y, 0);
             }
-            FPSHeadLook();
         }
 
         private void AimDistanceCamera()
         {
-            pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetAnimator().GetBoneTransform(HumanBodyBones.Head).position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
-            cam.transform.parent = pivotCamera;
-            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(AimDistance.x, DefaultCameraDistance.y, DefaultCameraDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 70, Time.deltaTime * 20);
+            pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetHeadBone().position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
+            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(IsRightShoulder ? AimDistance.x : AimDistance.x * -1, DefaultCameraDistance.y, DefaultCameraDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
             Yaw += Input.GetAxis("Mouse X") * MouseXAxisSensitivity;
             Vector2 YawLimit = new Vector2(-Mathf.Infinity, Mathf.Infinity);
             Yaw = Mathf.Clamp(Yaw, YawLimit.x, YawLimit.y);
             Pitch -= Input.GetAxis("Mouse Y") * MouseYAxisSensitivity;
             Vector2 PitchLimit = new Vector2(-45, 45);
             Pitch = Mathf.Clamp(Pitch, PitchLimit.x, PitchLimit.y);
-            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw), ref RotationSmoothVelocity, RotationSmoothTime);
+            float Roll = PedControl.GetPedestrian().GetHeadBone().eulerAngles.z;
+            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw, Roll), ref RotationSmoothVelocity, RotationSmoothTime);
             pivotCamera.eulerAngles = CurrentRotation;
-            FPSHeadLook();
         }
 
         private void DefaultCameraType()
         {
-            pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetAnimator(false).GetBoneTransform(HumanBodyBones.Head).position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
-            cam.transform.parent = pivotCamera;
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 70, Time.deltaTime * 20);
+            pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetHeadBone(false).position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
             cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, DefaultCameraDistance, ref CameraLocalPositionSmoothVelocity, .1f);
             Yaw += Input.GetAxis("Mouse X") * MouseXAxisSensitivity;
             Vector2 YawLimit = new Vector2(-Mathf.Infinity, Mathf.Infinity);
@@ -353,12 +409,11 @@ namespace GameManager
             Pitch = Mathf.Clamp(Pitch, PitchLimit.x, PitchLimit.y);
             CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw), ref RotationSmoothVelocity, RotationSmoothTime);
             pivotCamera.eulerAngles = CurrentRotation;
-            FPSHeadLook();
         }
 
         void FPSHeadLook()
         {
-            PedControl.GetPedestrian().SetHeadLookPosition(cam.transform.position + cam.transform.forward * cam.farClipPlane);
+            PedControl.GetPedestrian().SetHeadLookPosition(cam.transform.position + cam.transform.forward * 200f);
         }
 
         private void HeadLookSystem()

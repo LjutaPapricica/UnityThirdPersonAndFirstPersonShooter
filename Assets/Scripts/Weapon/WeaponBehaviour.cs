@@ -8,21 +8,75 @@ namespace Weapon
     {
         private Rigidbody rb;
 
-        [Serializable] public class BodySystem
+        [Serializable] public class FirstPersonSystem
+        {
+            [SerializeField] [Range(0, 15)] private float defaultType;
+            [SerializeField] [Range(0, 15)] private float aimingType;
+            [SerializeField] [Range(0, 15)] private float defaultFiringTypeUpperLayer;
+            [SerializeField] [Range(0, 15)] private float aimingFiringTypeUpperLayer;
+            [SerializeField] private float fireRate;
+            [SerializeField] [Range(0, 15)] private float defaultRelaxedType = 1;
+            [SerializeField] [Range(0, 15)] private float relaxedType;
+            [SerializeField] private Vector3 SpineRotation;
+
+            public float GetFireRate()
+            {
+                return fireRate;
+            }
+
+            public float GetDefaultFiringTypeValue()
+            {
+                return defaultFiringTypeUpperLayer;
+            }
+
+            public float GetAimingFiringTypeValue()
+            {
+                return aimingFiringTypeUpperLayer;
+            }
+
+            public float GetDefaultTypeValue()
+            {
+                return defaultType;
+            }
+
+            public float GetAimingTypeValue()
+            {
+                return aimingType;
+            }
+
+            public float GetDefaultRelaxedType()
+            {
+                return defaultRelaxedType;
+            }
+
+            public float GetRelaxedType()
+            {
+                return relaxedType;
+            }
+
+            public Vector3 GetSpineRotation()
+            {
+              return SpineRotation;
+            }
+        }
+
+        [Serializable] public class ThirdPersonSystem
         {
             [SerializeField] private Transform leftHandSolver;
-            [SerializeField] [Range(0, 15)] private float defaultTypeUpperLayer;
             [SerializeField] [Range(0, 15)] private float aimingTypeUpperLayer;
             [SerializeField] [Range(0, 1)] private float firingWeight;
+            [SerializeField] private float fireRate;
+            [SerializeField] private bool UpperLayerRelaxedAnimation;
+            [SerializeField] private Vector3 SpineRotation;
+
+            public float GetFireRate()
+            {
+                return fireRate;
+            }
 
             public Transform GetLeftHandSolver()
             {
                 return leftHandSolver;
-            }
-
-            public void SetLeftHandSolver(Transform transform)
-            {
-                leftHandSolver = transform;
             }
 
             public float GetAimingTypeValue()
@@ -35,9 +89,14 @@ namespace Weapon
                 return firingWeight;
             }
 
-            public float GetDefaultTypeValue()
+            public bool GetBoolUseUpperLayerRelaxedAnimation()
             {
-                return defaultTypeUpperLayer;
+                return UpperLayerRelaxedAnimation;
+            }
+
+            public Vector3 GetSpineRotation()
+            {
+              return SpineRotation;
             }
         }
 
@@ -96,10 +155,7 @@ namespace Weapon
                 return localEulerAngles;
             }
 
-            // public Vector3 GetSpineRotation()
-            //{
-              //  return SpineRotation;
-            //}
+            
 
             public bool IsOwned()
             {
@@ -114,7 +170,6 @@ namespace Weapon
 
         [Serializable] public class FireArmSystem
         {
-            [SerializeField] private float fireRate;
             [SerializeField] private Ammo ammo;
             [SerializeField] private Transform FirePoint;
             [SerializeField] private float shootDistance = 50f;
@@ -132,14 +187,9 @@ namespace Weapon
                 return hitForce;
             }
 
-            public float GetFireRate()
+            public Transform GetFirePoint()
             {
-                return fireRate;
-            }
-
-            public Vector3 GetFirePosition()
-            {
-                return FirePoint.position;
+                return FirePoint;
             }
 
             public float GetShootingDistance()
@@ -163,14 +213,14 @@ namespace Weapon
             }
         }
         
-        [SerializeField] private BodySystem FirstPersonOwner;
-        [SerializeField] private BodySystem ThirdPersonOwner;
+        [SerializeField] private FirstPersonSystem FirstPersonOwner;
+        [SerializeField] private ThirdPersonSystem ThirdPersonOwner;
 
         [SerializeField] private FireArmSystem fireArm;
 
         [SerializeField] private OwnerSystem owner; // 
 
-        public BodySystem GetOwnerValue()
+        public ThirdPersonSystem GetThirdPersonSystem()
         {
             return ThirdPersonOwner;
         }
@@ -180,16 +230,9 @@ namespace Weapon
             return owner;
         }
 
-        public BodySystem GetOwnerValue(bool IsFPS)
+        public FirstPersonSystem GetFirstPersonSystem()
         {
-            if (IsFPS == true)
-            {
-                return FirstPersonOwner;
-            }
-            else
-            {
-                return ThirdPersonOwner;
-            }
+            return FirstPersonOwner;
         }
 
         public FireArmSystem GetFireArmSystem()
@@ -204,9 +247,16 @@ namespace Weapon
         
         private void Update()
         {
-            Debug.DrawRay(fireArm.GetFirePosition(), transform.forward * 50, Color.red);
-            Debug.DrawRay(fireArm.GetFirePosition(), fireArm.GetFirePointDirection() * 50, Color.black);
+            Debug.DrawRay(fireArm.GetFirePoint().position, fireArm.GetFirePoint().forward * 50, Color.red);
+            Debug.DrawRay(fireArm.GetFirePoint().position, fireArm.GetFirePointDirection() * 50, Color.black);
             WeaponOwnerShipBehavior();
+        }
+
+        public void ReloadLogic()
+        {
+            uint BulletSize = GetFireArmSystem().GetAmmo().GetClipSize() - GetFireArmSystem().GetAmmo().GetMaxClipSize();
+            GetFireArmSystem().GetAmmo().SetClipSize(GetFireArmSystem().GetAmmo().GetMaxClipSize() > GetFireArmSystem().GetAmmo().GetBullet() ? GetFireArmSystem().GetAmmo().GetBullet() : GetFireArmSystem().GetAmmo().GetMaxClipSize());
+            GetFireArmSystem().GetAmmo().SetBullet(GetFireArmSystem().GetAmmo().GetMaxClipSize() > GetFireArmSystem().GetAmmo().GetBullet() ? 0 : GetFireArmSystem().GetAmmo().GetBullet() + BulletSize);
         }
 
         private void WeaponOwnerShipBehavior()
@@ -216,10 +266,24 @@ namespace Weapon
                 transform.parent = null;
                 rb.isKinematic = false;
                 fireArm.SetFirePointDirection(transform.forward);
+                rb.useGravity = true;
+
+                MeshRenderer[] wepMesh = GetComponentsInChildren<MeshRenderer>();
+
+                foreach (MeshRenderer mesh in wepMesh)
+                {
+                    mesh.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                }
+
             }
             else
             {
                 rb.isKinematic = true;
+                Collider[] wepCol = rb.GetComponents<Collider>();
+                foreach (Collider col in wepCol)
+                {
+                    col.isTrigger = false;
+                }
             }
         }
 
@@ -232,8 +296,9 @@ namespace Weapon
         {
             if (fireArm.GetAmmo().GetClipSize() > 0)
             {
+                fireArm.GetAmmo().SetClipSize(fireArm.GetAmmo().GetClipSize() - 1);
                 RaycastHit[] hits = new RaycastHit[10];
-                Ray ray = new Ray(fireArm.GetFirePosition(), fireArm.GetFirePointDirection());
+                Ray ray = new Ray(fireArm.GetFirePoint().position, fireArm.GetFirePointDirection());
                 hits = Physics.RaycastAll(ray, fireArm.GetShootingDistance(), fireArm.GetShootingLayers());
                 for (int i = 0; i < hits.Length; i++)
                 {
@@ -256,12 +321,14 @@ namespace Weapon
                         rb.AddForce(-hit.normal * fireArm.GetForce());
                     }
 
-                    fireArm.GetAmmo().SetClipSize(fireArm.GetAmmo().GetClipSize() - 1);
                     Debug.Log(hit.collider.gameObject.name);
-
+                    
                     if (ped != null)
                     {
-                        ped.SetHealth(ped.GetHealth() - 36);
+                        if (GetComponent<WeaponBehaviour>() != ped.GetWeapon())
+                        {
+                            ped.SetHealth(ped.GetHealth() - 36);
+                        }
                     }
                 }
             }
