@@ -340,15 +340,14 @@ namespace GameManager
         {
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 70, Time.deltaTime * 20);
             pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetHeadBone().position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
-            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(IsRightShoulder ? AimDistance.x : AimDistance.x * -1, AimDistance.y, AimDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
+            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(IsRightShoulder ? (AimDistance.x + PedControl.GetPeakingDistance() / 2) : (AimDistance.x - PedControl.GetPeakingDistance() / 2) * -1, AimDistance.y, AimDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
             Yaw += Input.GetAxis("Mouse X") * MouseXAxisSensitivity;
             Vector2 YawLimit = new Vector2(-Mathf.Infinity, Mathf.Infinity);
             Yaw = Mathf.Clamp(Yaw, YawLimit.x, YawLimit.y);
             Pitch -= Input.GetAxis("Mouse Y") * MouseYAxisSensitivity;
             Vector2 PitchLimit = new Vector2(-45, 45);
             Pitch = Mathf.Clamp(Pitch, PitchLimit.x, PitchLimit.y);
-            float Roll = PedControl.GetPedestrian().GetHeadBone().eulerAngles.z;
-            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw, Roll), ref RotationSmoothVelocity, RotationSmoothTime);
+            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw), ref RotationSmoothVelocity, RotationSmoothTime);
             pivotCamera.eulerAngles = CurrentRotation;
         }
 
@@ -384,15 +383,14 @@ namespace GameManager
         {
             cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, 70, Time.deltaTime * 20);
             pivotCamera.transform.position = Vector3.SmoothDamp(pivotCamera.transform.position, PedControl.GetPedestrian().GetHeadBone().position, ref CameraPositionSmoothVelocity, PositionSmoothTime);
-            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(IsRightShoulder ? AimDistance.x : AimDistance.x * -1, DefaultCameraDistance.y, DefaultCameraDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
+            cam.transform.localPosition = Vector3.SmoothDamp(cam.transform.localPosition, new Vector3(IsRightShoulder ? (AimDistance.x + PedControl.GetPeakingDistance() / 2) : (AimDistance.x - PedControl.GetPeakingDistance() / 2) * -1, DefaultCameraDistance.y, DefaultCameraDistance.z), ref CameraLocalPositionSmoothVelocity, .1f);
             Yaw += Input.GetAxis("Mouse X") * MouseXAxisSensitivity;
             Vector2 YawLimit = new Vector2(-Mathf.Infinity, Mathf.Infinity);
             Yaw = Mathf.Clamp(Yaw, YawLimit.x, YawLimit.y);
             Pitch -= Input.GetAxis("Mouse Y") * MouseYAxisSensitivity;
             Vector2 PitchLimit = new Vector2(-45, 45);
             Pitch = Mathf.Clamp(Pitch, PitchLimit.x, PitchLimit.y);
-            float Roll = PedControl.GetPedestrian().GetHeadBone().eulerAngles.z;
-            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw, Roll), ref RotationSmoothVelocity, RotationSmoothTime);
+            CurrentRotation = Vector3.SmoothDamp(CurrentRotation, new Vector3(Pitch, Yaw), ref RotationSmoothVelocity, RotationSmoothTime);
             pivotCamera.eulerAngles = CurrentRotation;
         }
 

@@ -122,12 +122,12 @@ namespace Pedestrian
             }
         }
 
-        private float GetPeakingDistance()
+        public float GetPeakingDistance()
         {
             return peakDistance;
         }
 
-        private void SetPeaking(float val)
+        public void SetPeaking(float val)
         {
             peakDistance = val;
         }
